@@ -1,0 +1,22 @@
+{
+  "compress": {
+    "queue_length": 300,
+    "num_workers": 3
+  },
+  "metadata": {
+    "queue_length": 300,
+    "num_workers": 3
+  },
+  "reader": {
+    "queue_length": 300,
+    "num_workers": 3
+  },
+  "store": {
+    "queue_length": 300,
+    "num_workers": 3
+  },
+  "injestor": {
+    "queue_length": 300,
+    "num_workers": 3
+  }
+}
