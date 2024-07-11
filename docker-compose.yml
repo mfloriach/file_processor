@@ -28,6 +28,23 @@ services:
       MINIO_ROOT_PASSWORD: password
       MINIO_DEFAULT_BUCKETS: test
 
+  # solr:
+  #   image: arm64v8/solr 
+  #   ports:
+  #       - "7983:8983"
+  #   command: "/opt/solr/solrtest/start-solr"
+  #   volumes:
+  #     - "./bin:/opt/solr/solrtest:rw"
+
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - redis:/data
+
   cadvisor:
       image: gcr.io/cadvisor/cadvisor:v0.47.1
       hostname: cadvisor
@@ -61,5 +78,6 @@ services:
 
 volumes:
   my-data:
+  redis:
   minio_data:
     driver: local
