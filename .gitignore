@@ -1,3 +1,4 @@
 profiles/*
+!profiles/example.out
 .env
 test.mp4
