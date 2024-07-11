@@ -13,3 +13,6 @@ jobs:
        
       - name: Display Go version
         run: go version
+
+      - name: Test
+        run: make benchConc
