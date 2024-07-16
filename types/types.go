@@ -66,3 +66,7 @@ type Flags struct {
 	Mode    string
 	Workers int
 }
+
+type Cache interface {
+	Set(ctx context.Context, key string, value interface{}, expiration ...int64) error
+}

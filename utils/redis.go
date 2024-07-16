@@ -1,21 +1,44 @@
 package utils
 
 import (
+	"context"
+	"encoding/json"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 )
 
-var rdb *redis.Client
+var c *cache
 
-func GetRedisClient() *redis.Client {
-	if rdb != nil {
-		return rdb
+type cache struct {
+	rdb *redis.Client
+}
+
+func GetRedisClient() *cache {
+	if c != nil {
+		return c
 	}
 
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81", // no password set
-		DB:       0,                                  // use default DB
-	})
+	env := GetEnv()
 
-	return rdb
+	return &cache{
+		rdb: redis.NewClient(&redis.Options{
+			Addr:     env.RedisAddr,
+			Password: env.RedisPassword,
+			DB:       0,
+		}),
+	}
+}
+
+func (c cache) Set(ctx context.Context, key string, value interface{}, expiration ...int64) error {
+	b, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	if err := c.rdb.Set(ctx, key, b, time.Minute); err.Err() != nil {
+		return err.Err()
+	}
+
+	return nil
 }

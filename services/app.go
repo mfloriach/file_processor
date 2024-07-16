@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"processor/types"
 	"processor/utils"
@@ -37,7 +38,6 @@ type Config struct {
 func NewApp(f ...types.Flags) App {
 	flg := types.Flags{}
 	if len(f) > 0 {
-		fmt.Println(f, len(f))
 		flg = f[0]
 	}
 
@@ -64,6 +64,7 @@ func (app *App) Run(ctx context.Context, paths ...string) error {
 	}
 
 	app.Config.Logger.Info("start processing files", zap.String("mode", app.Config.Flags.Mode), zap.Int("num of worker", app.Config.Flags.Workers))
+	defer app.PrintErrors()
 
 	if Mode(app.Config.Flags.Mode) == ModeSequencial {
 		for iter.HasNext() {
@@ -99,6 +100,25 @@ func (app *App) Close() {
 	utils.CloseClient()
 }
 
+func (app *App) PrintErrors() {
+	m := map[string]interface{}{}
+	app.Config.Errs.Range(func(key, value interface{}) bool {
+		m[fmt.Sprint(key)] = fmt.Sprint(value)
+		return true
+	})
+
+	if len(m) == 0 {
+		return
+	}
+
+	b, err := json.MarshalIndent(m, "", " ")
+	if err != nil {
+		panic(err)
+	}
+
+	app.Config.Logger.Info("errors", zap.ByteString("errors", b))
+}
+
 func (app *App) Sequencial(ctx context.Context, m types.Movie) error {
 
 	m1, err := app.Metadata.Sequencial(ctx, m)
@@ -128,9 +148,9 @@ func (app *App) Parallel(ctx context.Context, numWorker ...int) (chan types.Movi
 	c2 := make(chan types.Movie, 50)
 	c3 := make(chan types.Movie, 50)
 
-	w1 := utils.WorkerPool(ctx, in, c2, w, app.Metadata.Sequencial)
-	w2 := utils.WorkerPool(ctx, c2, c3, w, app.Compress.Sequencial)
-	w3 := utils.WorkerPool(ctx, c3, nil, w, app.Store.Sequencial)
+	w1 := utils.WorkerPool(ctx, in, c2, w, app.Metadata.Sequencial, app.Config.Errs)
+	w2 := utils.WorkerPool(ctx, c2, c3, w, app.Compress.Sequencial, app.Config.Errs)
+	w3 := utils.WorkerPool(ctx, c3, nil, w, app.Store.Sequencial, app.Config.Errs)
 
 	return in, func() {
 		defer w3()

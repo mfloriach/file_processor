@@ -2,19 +2,15 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"processor/repo"
 	"processor/types"
 	"processor/utils"
-	"time"
-
-	"github.com/go-redis/redis/v8"
 )
 
 type store struct {
 	config   *Config
 	metadata types.MovieRepository
-	cache    *redis.Client
+	cache    types.Cache
 }
 
 func NewStore(config *Config) types.Step {
@@ -30,13 +26,8 @@ func (a store) Sequencial(ctx context.Context, m types.Movie) (types.Movie, erro
 		return types.Movie{}, err
 	}
 
-	b, err := json.Marshal(m)
-	if err != nil {
+	if err := a.cache.Set(ctx, m.ID, m); err != nil {
 		return types.Movie{}, err
-	}
-
-	if err := a.cache.Set(ctx, m.ID, b, time.Minute); err.Err() != nil {
-		return types.Movie{}, err.Err()
 	}
 
 	return m, nil

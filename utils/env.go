@@ -17,6 +17,8 @@ type Env struct {
 	MinioLocation      string `mapstructure:"MINIO_LOCATION"`
 	ImdbToken          string `mapstructure:"IMDB_TOKEN"`
 	ImdbBaseUrl        string `mapstructure:"IMDB_BASE_URL"`
+	RedisAddr          string `mapstructure:"REDIS_ADDR"`
+	RedisPassword      string `mapstructure:"REDIS_PASSWORD"`
 }
 
 var env *Env
