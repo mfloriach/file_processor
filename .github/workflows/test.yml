@@ -12,4 +12,10 @@ jobs:
       - uses: actions/setup-go@v5
        
       - name: Test
-        run: make benchConc
+        run: make benchConc | tee output.txt
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'go'
+          output-file-path: output.txt
